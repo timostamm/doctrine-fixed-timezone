@@ -48,10 +48,10 @@ class DateTimeImmutableType extends Base
             return $value;
         }
 
-        $dateTime = \DateTimeImmutable::createFromFormat($platform->getDateTimeFormatString(), $value, TzConversion::timezonePHP());
+        $dateTime = \DateTimeImmutable::createFromFormat($platform->getDateTimeFormatString(), $value, TzConversion::timezoneDB());
 
         if (!$dateTime) {
-            $dateTime = \date_create_immutable($value, TzConversion::timezonePHP());
+            $dateTime = \date_create_immutable($value, TzConversion::timezoneDB());
         }
 
         if (!$dateTime) {

@@ -49,10 +49,10 @@ class DateTimeType extends Base
             return $value;
         }
 
-        $val = \DateTime::createFromFormat($platform->getDateTimeFormatString(), $value, TzConversion::timezonePHP());
+        $val = \DateTime::createFromFormat($platform->getDateTimeFormatString(), $value, TzConversion::timezoneDB());
 
         if (!$val) {
-            $val = date_create($value, TzConversion::timezonePHP());
+            $val = date_create($value, TzConversion::timezoneDB());
         }
 
         if (!$val) {

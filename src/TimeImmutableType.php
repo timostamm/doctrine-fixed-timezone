@@ -48,7 +48,7 @@ class TimeImmutableType extends Base
             return $value;
         }
 
-        $dateTime = \DateTimeImmutable::createFromFormat('!' . $platform->getTimeFormatString(), $value, TzConversion::timezonePHP());
+        $dateTime = \DateTimeImmutable::createFromFormat('!' . $platform->getTimeFormatString(), $value, TzConversion::timezoneDB());
 
         if (! $dateTime) {
             throw ConversionException::conversionFailedFormat(

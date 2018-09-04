@@ -48,7 +48,7 @@ class DateType extends Base
             return $value;
         }
 
-        $val = \DateTime::createFromFormat('!'.$platform->getDateFormatString(), $value, TzConversion::timezonePHP());
+        $val = \DateTime::createFromFormat('!'.$platform->getDateFormatString(), $value, TzConversion::timezoneDB());
         if ( ! $val) {
             throw ConversionException::conversionFailedFormat($value, $this->getName(), $platform->getDateFormatString());
         }
