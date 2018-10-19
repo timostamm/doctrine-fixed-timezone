@@ -102,7 +102,7 @@ abstract class TzConversion
         }
         $cast = new \DateTime('now', $tz_db);
 
-        $cast->setDate($dateTime->format('j'), $dateTime->format('j'), $dateTime->format('j'));
+        $cast->setDate($dateTime->format('Y'), $dateTime->format('n'), $dateTime->format('j'));
 
         $cast->setTimestamp($dateTime->getTimestamp());
         return $dateTime instanceof \DateTimeImmutable ? \DateTimeImmutable::createFromMutable($cast) : $cast;

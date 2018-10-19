@@ -3,6 +3,7 @@
     "description": "Normalize timezones in a Doctrine database.",
     "type": "library",
     "require": {
+        "php": "^7.1",
         "doctrine/dbal": "^2.7"
     },
     "license": "MIT",
