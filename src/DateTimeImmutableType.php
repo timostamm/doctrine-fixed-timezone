@@ -36,6 +36,9 @@ class DateTimeImmutableType extends Base
      */
     public function convertToDatabaseValue($value, AbstractPlatform $platform)
     {
+        if ($value === null) {
+            return null;
+        }
         if ($value instanceof DateTimeInterface) {
             $value = TzConversion::convertToDB($value);
             return $value->format($platform->getDateTimeFormatString());

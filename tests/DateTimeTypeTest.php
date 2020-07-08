@@ -22,6 +22,13 @@ class DateTimeTypeTest extends TestCase
     }
 
 
+    public function testConvertNullToDatabaseValue()
+    {
+        $result = $this->type->convertToDatabaseValue(null, $this->platform);
+        $this->assertNull($result);
+    }
+
+
     public function testConvertToPHPValue()
     {
         date_default_timezone_set('Europe/London');
