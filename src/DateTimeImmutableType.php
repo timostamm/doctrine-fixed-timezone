@@ -19,11 +19,15 @@
 
 namespace TS\DoctrineExtensions\DBAL\FixedDbTimezone;
 
+use DateTimeImmutable;
+use DateTimeInterface;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\ConversionException;
 use Doctrine\DBAL\Types\DateTimeImmutableType as Base;
 
-
+/**
+ * Type of {@see Base} that converts to UTC.
+ */
 class DateTimeImmutableType extends Base
 {
 
@@ -32,10 +36,15 @@ class DateTimeImmutableType extends Base
      */
     public function convertToDatabaseValue($value, AbstractPlatform $platform)
     {
-        if ($value instanceof \DateTimeInterface) {
+        if ($value instanceof DateTimeInterface) {
             $value = TzConversion::convertToDB($value);
+            return $value->format($platform->getDateTimeFormatString());
         }
-        return parent::convertToDatabaseValue($value, $platform);
+        throw ConversionException::conversionFailedInvalidType(
+            $value,
+            $this->getName(),
+            ['null', DateTimeImmutable::class]
+        );
     }
 
 
@@ -44,25 +53,22 @@ class DateTimeImmutableType extends Base
      */
     public function convertToPHPValue($value, AbstractPlatform $platform)
     {
-        if ($value === null || $value instanceof \DateTimeImmutable) {
+        if ($value === null || $value instanceof DateTimeImmutable) {
             return $value;
         }
 
-        $dateTime = \DateTimeImmutable::createFromFormat($platform->getDateTimeFormatString(), $value, TzConversion::timezoneDB());
+        $dateTime = DateTimeImmutable::createFromFormat($platform->getDateTimeFormatString(), $value, TzConversion::timezoneDB());
 
         if (!$dateTime) {
-            $dateTime = \date_create_immutable($value, TzConversion::timezoneDB());
-        }
-
-        if (!$dateTime) {
-            throw ConversionException::conversionFailedFormat(
-                $value,
-                $this->getName(),
-                $platform->getDateTimeFormatString()
-            );
+            throw ConversionException::conversionFailedFormat($value, $this->getName(), $platform->getDateTimeFormatString());
         }
 
         return $dateTime;
+    }
+
+    public function requiresSQLCommentHint(AbstractPlatform $platform)
+    {
+        return true;
     }
 
 

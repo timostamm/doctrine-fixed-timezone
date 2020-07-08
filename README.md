@@ -31,14 +31,23 @@ conversion.
 ### Solution provided by this library
 
 This library provides replacements for the DBAL types `datetime`, 
-`datetime_immutable`, `date`, `date_immutable`, `time`, `time_immutable`. 
+and `datetime_immutable`, which will automatically convert dates 
+into the database timezone. 
 
-The types `datetime` and `datetime_immutable` will automatically 
-convert dates into the database timezone and back to the PHP timezone. 
+When reading a `datetime` or `datetime_immutable`, the timezone 
+will **not be converted to the PHP timezone**. The dates will refer 
+to the correct point in time, but have the database timezone. 
 
-The types `date` and `time` (and the immutable variants) will be cast 
-to the database timezone. This means that a time 8:45 will stay 8:45, 
-even though this might actually change the date. 
+
+### Regarding standalone date and time
+
+A date without a time, or a time without a date both do not refer 
+to an absolute point in time. Since PHP does not have types to 
+represent stand-alone times or dates, developers use `DateTime` 
+objects to represent those too, but their timezone should be ignored.
+
+Therefore, it should be fine to use the standard `date` and `time` 
+doctrine types. 
 
 
 ### How to use
@@ -52,10 +61,6 @@ doctrine:
     types:
       datetime: TS\DoctrineExtensions\DBAL\FixedDbTimezone\DateTimeType
       datetime_immutable: TS\DoctrineExtensions\DBAL\FixedDbTimezone\DateTimeImmutableType
-      date: TS\DoctrineExtensions\DBAL\FixedDbTimezone\DateType
-      date_immutable: TS\DoctrineExtensions\DBAL\FixedDbTimezone\DateImmutableType
-      time: TS\DoctrineExtensions\DBAL\FixedDbTimezone\TimeType
-      time_immutable: TS\DoctrineExtensions\DBAL\FixedDbTimezone\TimeImmutableType
 ```
 
 

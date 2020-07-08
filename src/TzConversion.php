@@ -20,13 +20,22 @@
 namespace TS\DoctrineExtensions\DBAL\FixedDbTimezone;
 
 
-use Doctrine\DBAL\Types\ConversionException;
+use DateTime;
+use DateTimeImmutable;
+use DateTimeInterface;
+use DateTimeZone;
+use LogicException;
 
 
 abstract class TzConversion
 {
 
-    public static function timezoneDB(): \DateTimeZone
+    /**
+     * Returns the timezone configured for the database.
+     *
+     * @return DateTimeZone
+     */
+    public static function timezoneDB(): DateTimeZone
     {
         if (!static::$tz_db) {
             $name = null;
@@ -37,11 +46,11 @@ abstract class TzConversion
                 if (is_string($env)) {
                     $name = $env;
                 } else if (is_array($env)) {
-                    throw new \LogicException('Environment variable "DATABASE_TIMEZONE" was expected to contain a string, got array.');
+                    throw new LogicException('Environment variable "DATABASE_TIMEZONE" was expected to contain a string, got array.');
                 }
             }
             if ($name) {
-                static::$tz_db = new \DateTimeZone($name);
+                static::$tz_db = new DateTimeZone($name);
             } else {
                 static::$tz_db = static::timezonePHP();
             }
@@ -50,62 +59,48 @@ abstract class TzConversion
     }
 
 
-    public static function timezonePHP(): \DateTimeZone
+    /**
+     * Returns the timezone configured for PHP.
+     *
+     * @return DateTimeZone
+     */
+    public static function timezonePHP(): DateTimeZone
     {
         if (!static::$tz_php) {
-            static::$tz_php = new \DateTimeZone(date_default_timezone_get());
+            static::$tz_php = new DateTimeZone(date_default_timezone_get());
         }
         return static::$tz_php;
     }
 
 
-    public static function enforceDB(\DateTimeInterface $value, string $toType): void
+    /**
+     * Converts a date time object to the database timezone.
+     *
+     * The new date time object will still point to the same
+     * point in time, it will just have a different timezone
+     * attached.
+     *
+     * When you string format the date however, the converted
+     * date will have a different representation, because the
+     * point in time looks different from a different
+     * timezone.
+     *
+     * @param DateTimeInterface $dateTime
+     * @return DateTimeInterface
+     */
+    public static function convertToDB(DateTimeInterface $dateTime): DateTimeInterface
     {
-        $actualTz = $value->getTimezone();
-        $expectedTz = static::timezoneDB();
-        if ($actualTz === $expectedTz) {
-            return;
-        }
-        if ($actualTz->getName() === $expectedTz->getName()) {
-            return;
-        }
-        $msg = 'Could not convert PHP DateTime "' . $value->format(DATE_RFC3339) . '" to Doctrine Type ' . $toType . '. '
-            . 'The time zone "' . $actualTz->getName() . '" of the PHP DateTime must match the database timezone "' . $expectedTz->getName() . '"".';
-        throw new ConversionException($msg);
-    }
-
-
-    public static function convertToDB(\DateTimeInterface $dateTime): \DateTimeInterface
-    {
-        if ($dateTime instanceof \DateTimeImmutable) {
+        if ($dateTime instanceof DateTimeImmutable) {
             return $dateTime->setTimezone(static::timezoneDB());
         }
 
-        if ($dateTime instanceof \DateTime) {
+        if ($dateTime instanceof DateTime) {
             $asUtc = clone $dateTime;
             $asUtc->setTimezone(static::timezoneDB());
             return $asUtc;
         }
 
-        throw new \LogicException('Unknown DateTimeInterface implementation: ' . get_class($dateTime));
-    }
-
-
-    public static function castToDB(\DateTimeInterface $dateTime): \DateTimeInterface
-    {
-        $tz_db = static::timezoneDB();
-        if ($dateTime->getTimezone() === $tz_db) {
-            return $dateTime;
-        }
-        if ($dateTime->getTimezone()->getName() === $tz_db->getName()) {
-            return $dateTime;
-        }
-        $cast = new \DateTime('now', $tz_db);
-
-        $cast->setDate($dateTime->format('Y'), $dateTime->format('n'), $dateTime->format('j'));
-
-        $cast->setTimestamp($dateTime->getTimestamp());
-        return $dateTime instanceof \DateTimeImmutable ? \DateTimeImmutable::createFromMutable($cast) : $cast;
+        throw new LogicException('Unknown DateTimeInterface implementation: ' . get_class($dateTime));
     }
 
 
